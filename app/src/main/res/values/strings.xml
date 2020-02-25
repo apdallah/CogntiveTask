@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">BaseArch</string>
+
+    <string name="retry">Retry again</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+</resources>
