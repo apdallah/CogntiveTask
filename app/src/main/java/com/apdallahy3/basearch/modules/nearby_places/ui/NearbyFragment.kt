@@ -5,36 +5,47 @@ import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context.LOCATION_SERVICE
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.GnssNavigationMessage
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.media.Image
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 
 import com.apdallahy3.basearch.R
+import com.apdallahy3.basearch.data.source.local.entities.PlacesEntitiy
+import com.apdallahy3.basearch.data.source.remote.Resource
 import com.apdallahy3.basearch.data.source.remote.Status
 import com.apdallahy3.basearch.databinding.FragmentNearbyBinding
 import com.apdallahy3.basearch.modules.nearby_places.NearbyPlacesViewModel
+import com.apdallahy3.basearch.utils.TypeChangeListner
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class NearbyFragment : Fragment() {
+class NearbyFragment : Fragment(),TypeChangeListner {
 
     lateinit var dataBinding: FragmentNearbyBinding
     private val REQUEST_LOCATION_PERMISION = 500
     private val viewModel: NearbyPlacesViewModel by viewModel()
     private lateinit var adapter: NearByAdapter
+
     @SuppressLint("NewApi")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -43,18 +54,19 @@ class NearbyFragment : Fragment() {
         dataBinding = DataBindingUtil.inflate(inflater, R.layout.fragment_nearby, container, false)
         dataBinding.placesRecycler.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-
-        viewModel.fusedLocation = LocationServices.getFusedLocationProviderClient(activity!!)
+        viewModel.locationManager = activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
+        viewModel.fusedLocation = LocationServices.getFusedLocationProviderClient(context!!)
 
         observeNearbysListRes()
+        ObserveLocationNotFound()
         if (activity!!.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            activity!!.requestPermissions(
+            requestPermissions(
                 arrayOf(android.Manifest.permission.ACCESS_COARSE_LOCATION),
                 REQUEST_LOCATION_PERMISION
             )
         } else {
-            viewModel.fetchLocation()
+            viewModel.setLocationUpdateListener()
 
         }
 
@@ -62,18 +74,59 @@ class NearbyFragment : Fragment() {
 
     }
 
+    private fun ObserveLocationNotFound() {
+        viewModel.locationNotEnabled.observe(viewLifecycleOwner, Observer {
+            if (it) startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        })
+    }
 
     private fun observeNearbysListRes() {
         viewModel.nearbysListResource.observe(viewLifecycleOwner, Observer {
-            adapter = NearByAdapter(context!!, it) {
+            adapter = NearByAdapter(context!!, it, {
                 fetchNearBys()
-            }
+            }, { item, view ->
+                getItemThumbinal(item, view)
+            })
             dataBinding.placesRecycler.adapter = adapter
         })
     }
 
+    private fun getItemThumbinal(placesEntitiy: PlacesEntitiy, view: ImageView) {
+
+        viewModel.getPlaceThumbinal(placesEntitiy)
+            .observe(viewLifecycleOwner, Observer {
+                when (it.status) {
+                    Status.LOADING -> {
+                        Glide.with(view.context).load(R.drawable.loading)
+                            .into(view)
+                    }
+                    Status.SUCCESS -> {
+                        if (it.data!!.isNotEmpty())
+                            Glide.with(view.context).load(it.data).into(view)
+                        else
+                            Glide.with(view.context).load(R.drawable.error).into(
+                                view
+                            )
+
+                    }
+                    Status.ERROR -> {
+                        Glide.with(view.context).load(R.drawable.error)
+                            .into(view)
+                    }
+                    else ->
+                        Glide.with(view.context).load(R.drawable.error).into(view)
+
+                }
+            })
+    }
+
     private fun fetchNearBys() {
         viewModel.fetchLocation()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        viewModel.stopLocationUpdates()
     }
 
 
@@ -82,9 +135,9 @@ class NearbyFragment : Fragment() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_LOCATION_PERMISION && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            viewModel.fetchLocation()
+        Log.i("onRequestResult", requestCode.toString())
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            viewModel.setLocationUpdateListener()
         }
     }
 
@@ -92,5 +145,10 @@ class NearbyFragment : Fragment() {
         @JvmStatic
         fun newInstance() =
             NearbyFragment()
+    }
+
+    override fun onTypeChange(type: Int) {
+        Log.i("onTypeChange", type.toString())
+
     }
 }

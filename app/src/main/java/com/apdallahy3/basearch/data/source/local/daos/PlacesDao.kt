@@ -15,5 +15,8 @@ interface PlacesDao {
     @Query("delete from places_tabel")
     fun clearPlcaes()
 
+    @Update
+    fun updateEntitiy(item: PlacesEntitiy)
+
 
 }

@@ -7,6 +7,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import com.apdallahy3.basearch.R
 import com.apdallahy3.basearch.databinding.AppBarBinding
+import com.apdallahy3.basearch.modules.nearby_places.NearbyPlacesViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
 abstract class BaseActionBarActivity<T : ViewDataBinding> : BaseActivity<T>() {

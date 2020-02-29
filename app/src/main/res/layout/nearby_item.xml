@@ -8,6 +8,7 @@
         <variable
             name="item"
             type="com.apdallahy3.basearch.data.source.local.entities.PlacesEntitiy" />
+
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

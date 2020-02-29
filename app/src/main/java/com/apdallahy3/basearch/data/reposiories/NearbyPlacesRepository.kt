@@ -3,7 +3,9 @@ package com.apdallahy3.basearch.data.reposiories
 import android.location.Location
 import androidx.lifecycle.LiveData
 import com.apdallahy3.basearch.data.response.GroupItemResponse
+import com.apdallahy3.basearch.data.response.Item
 import com.apdallahy3.basearch.data.response.NearbyPlacesResponse
+import com.apdallahy3.basearch.data.response.PhotoResponse
 import com.apdallahy3.basearch.data.source.local.NearbyDatabse
 import com.apdallahy3.basearch.data.source.local.daos.PlacesDao
 import com.apdallahy3.basearch.data.source.local.entities.PlacesEntitiy
@@ -75,6 +77,52 @@ class NearbyPlacesRepository(
 
         }
         return result
+    }
+
+    //call this from adapter on binding
+    //after return update db
+    fun getPlaceThumbinal(placeItem: PlacesEntitiy): LiveData<Resource<String>> {
+        return object : NetworkBoundResource<String, PhotoResponse>(coroutineContext) {
+            private var result: String? = null
+            override fun saveCallResult(item: PhotoResponse) {
+                item.response?.let { photoResponseItem ->
+                    photoResponseItem.photos?.let { photoItem ->
+                        photoItem.items?.let { item ->
+                            if (item.isNotEmpty())
+                                result =
+                                    "${item.get(0).prefix}${item.get(0).width}x${item.get(0).height}${item.get(
+                                        0
+                                    ).suffix} " else ""
+                        }
+                    }
+
+                }
+                placeItem.thumbinal = result
+                updatePlaceItem(placeItem)
+            }
+
+            override fun getResult(): String? = result
+
+
+            override fun createCall(): LiveData<ApiResponse<PhotoResponse>> {
+                return apiService.getThumbinalByID(
+                    id = placeItem.id,
+                    clienid = ClientConstants.CLIENT_ID,
+                    clientSecert = ClientConstants.CLIENT_SECERT,
+                    version = ClientConstants.VERSION
+                )
+            }
+
+            override fun shouldFetch(data: String?): Boolean = true
+            override fun loadFromDb(): LiveData<String>? = null
+
+        }.asLiveData()
+
+    }
+
+    fun updatePlaceItem(placeItem: PlacesEntitiy) {
+        placesDao.updateEntitiy(placeItem)
+
     }
 
     fun cachePlaces(placesList: List<PlacesEntitiy>) {
