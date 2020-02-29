@@ -1,7 +1,14 @@
 <resources>
-    <string name="app_name">BaseArch</string>
+    <string name="app_name">Nearby Places</string>
 
     <string name="retry">Retry again</string>
     <string name="yes">Yes</string>
+    <string name="ok">Ok</string>
     <string name="no">No</string>
+    <string name="nearbay">Nearby</string>
+    <string name="realtime">Realtime</string>
+    <string name="wait">Please Wait...</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
