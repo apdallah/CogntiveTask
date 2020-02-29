@@ -9,6 +9,9 @@ interface PlacesDao {
     @Query("select * from places_tabel")
     fun getPlaces(): LiveData<List<PlacesEntitiy>>
 
+    @Query("select * from places_tabel")
+    fun getPlacesList(): List<PlacesEntitiy>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun inserPlaces(data: List<PlacesEntitiy>)
 
