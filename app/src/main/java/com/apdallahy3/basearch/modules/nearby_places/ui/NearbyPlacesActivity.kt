@@ -9,6 +9,7 @@ import com.apdallahy3.basearch.base.BaseActionBarActivity
 import com.apdallahy3.basearch.utils.Constants
 import com.apdallahy3.basearch.utils.Constants.Companion.TYPE_NEAR_BY
 import com.apdallahy3.basearch.utils.Constants.Companion.TYPE_SINGLE_UPDATE
+import com.apdallahy3.basearch.utils.Constants.Companion.VIEWTYPE_KEY
 import com.apdallahy3.basearch.utils.PreferenceStorage
 import com.apdallahy3.basearch.utils.TypeChangeListner
 import org.koin.android.ext.android.inject
@@ -20,8 +21,12 @@ class NearbyPlacesActivity : BaseActionBarActivity<ViewDataBinding>() {
         loadType()
 
         setScreenTitle(getString(R.string.app_name))
+        val fragment = NearbyFragment.newInstance()
+        val args = Bundle()
+        args.putInt(VIEWTYPE_KEY, sharedPref.getViewType())
+        fragment.arguments = args
         supportFragmentManager.beginTransaction()
-            .add(R.id.container, NearbyFragment.newInstance(), "NearByPlaces").commit()
+            .add(R.id.container, fragment, "NearByPlaces").commit()
         setChangeTypeAction()
 
     }

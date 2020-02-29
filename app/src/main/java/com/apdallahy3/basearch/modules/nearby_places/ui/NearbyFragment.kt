@@ -32,6 +32,7 @@ import com.apdallahy3.basearch.data.source.remote.Resource
 import com.apdallahy3.basearch.data.source.remote.Status
 import com.apdallahy3.basearch.databinding.FragmentNearbyBinding
 import com.apdallahy3.basearch.modules.nearby_places.NearbyPlacesViewModel
+import com.apdallahy3.basearch.utils.Constants
 import com.apdallahy3.basearch.utils.TypeChangeListner
 import com.bumptech.glide.Glide
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -39,12 +40,13 @@ import com.google.android.gms.location.LocationServices
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class NearbyFragment : Fragment(),TypeChangeListner {
+class NearbyFragment : Fragment(), TypeChangeListner {
 
     lateinit var dataBinding: FragmentNearbyBinding
     private val REQUEST_LOCATION_PERMISION = 500
     private val viewModel: NearbyPlacesViewModel by viewModel()
     private lateinit var adapter: NearByAdapter
+    private var view_type: Int? = null
 
     @SuppressLint("NewApi")
     override fun onCreateView(
@@ -56,9 +58,10 @@ class NearbyFragment : Fragment(),TypeChangeListner {
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         viewModel.locationManager = activity!!.getSystemService(LOCATION_SERVICE) as LocationManager
         viewModel.fusedLocation = LocationServices.getFusedLocationProviderClient(context!!)
-
+        arguments?.let {
+            view_type = it.getInt(Constants.VIEWTYPE_KEY)
+        }
         observeNearbysListRes()
-        ObserveLocationNotFound()
         if (activity!!.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             requestPermissions(
@@ -74,11 +77,6 @@ class NearbyFragment : Fragment(),TypeChangeListner {
 
     }
 
-    private fun ObserveLocationNotFound() {
-        viewModel.locationNotEnabled.observe(viewLifecycleOwner, Observer {
-            if (it) startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-        })
-    }
 
     private fun observeNearbysListRes() {
         viewModel.nearbysListResource.observe(viewLifecycleOwner, Observer {
@@ -88,6 +86,7 @@ class NearbyFragment : Fragment(),TypeChangeListner {
                 getItemThumbinal(item, view)
             })
             dataBinding.placesRecycler.adapter = adapter
+            if (view_type == Constants.TYPE_SINGLE_UPDATE) viewModel.stopLocationUpdates()
         })
     }
 
@@ -148,7 +147,14 @@ class NearbyFragment : Fragment(),TypeChangeListner {
     }
 
     override fun onTypeChange(type: Int) {
-        Log.i("onTypeChange", type.toString())
+       when(type){
+           Constants.TYPE_SINGLE_UPDATE->{
+               viewModel.stopLocationUpdates()
+           }
+           Constants.TYPE_NEAR_BY->{
+               viewModel.setLocationUpdateListener()
+           }
+       }
 
     }
 }

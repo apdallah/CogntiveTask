@@ -18,7 +18,7 @@ class PreferenceStorage(val context: Context) {
     }
 
 
-    fun getViewType(): Int? {
+    fun getViewType(): Int {
         val preference = context.getSharedPreferences(PREF, Context.MODE_PRIVATE)
         return preference.getInt(VIEW_TYPE, Constants.TYPE_NEAR_BY)
     }

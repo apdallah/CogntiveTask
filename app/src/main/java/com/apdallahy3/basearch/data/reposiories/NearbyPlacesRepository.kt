@@ -10,6 +10,7 @@ import com.apdallahy3.basearch.data.source.local.NearbyDatabse
 import com.apdallahy3.basearch.data.source.local.daos.PlacesDao
 import com.apdallahy3.basearch.data.source.local.entities.PlacesEntitiy
 import com.apdallahy3.basearch.data.source.remote.*
+import com.apdallahy3.basearch.utils.PreferenceStorage
 
 
 class NearbyPlacesRepository(
@@ -132,4 +133,5 @@ class NearbyPlacesRepository(
     fun clearPlaces() {
         placesDao.clearPlcaes()
     }
+
 }
